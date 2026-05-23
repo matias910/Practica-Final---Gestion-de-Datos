@@ -1,3 +1,4 @@
+import {getFlag} from "../utils/banderas.jsx";
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -63,7 +64,7 @@ function Equipos() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                        {['#', 'Equipo', 'Ciudad', 'Fundacion', 'Director Tecnico', 'Acciones'].map(h => (
+                        {['id', 'Equipo', 'Ciudad', 'Fundacion', 'Director Tecnico', 'Acciones'].map(h => (
                             <th key={h} style={{
                                 padding: '0.85rem 1rem', textAlign: 'left',
                                 fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',
@@ -78,7 +79,9 @@ function Equipos() {
                             onMouseEnter={ev => ev.currentTarget.style.background = 'var(--surface2)'}
                             onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)', fontSize: '0.85rem' }}>{i + 1}</td>
-                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>{e.nombre}</td>
+                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>
+                                {getFlag(e.nombre)} {e.nombre}
+                            </td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{e.ciudad}</td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{e.año_fundacion}</td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{e.director_tecnico}</td>

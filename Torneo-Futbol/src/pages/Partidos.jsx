@@ -1,3 +1,4 @@
+import {getFlag} from "../utils/banderas.jsx";
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -77,7 +78,7 @@ function Partidos() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                        {['#', 'Fecha', 'Local', 'Visitante', 'Marcador', 'Estadio', 'Torneo', 'Acciones'].map(h => (
+                        {['#', 'Fecha', 'Local', 'Visitante', 'Marcador', 'Estadio', 'Arbitro', 'Torneo', 'Acciones'].map(h => (
                             <th key={h} style={{
                                 padding: '0.85rem 1rem', textAlign: 'left',
                                 fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',
@@ -93,8 +94,12 @@ function Partidos() {
                             onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)', fontSize: '0.85rem' }}>{i + 1}</td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.fecha?.split('T')[0]}</td>
-                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>{p.equipo_local}</td>
-                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>{p.equipo_visitante}</td>
+                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>
+                                {getFlag(p.equipo_local)} {p.equipo_local}
+                            </td>
+                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>
+                                {getFlag(p.equipo_visitante)} {p.equipo_visitante}
+                            </td>
                             <td style={{ padding: '0.8rem 1rem' }}>
                                 {p.marcador ? (
                                     <span style={{
@@ -105,6 +110,7 @@ function Partidos() {
                                 ) : '—'}
                             </td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.estadio}</td>
+                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.arbitro || '—'}</td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.torneo}</td>
                             <td style={{ padding: '0.8rem 1rem' }}>
                                 <button onClick={() => abrirEditar(p)} style={{
@@ -144,7 +150,7 @@ function Partidos() {
                         : <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
                             <thead>
                             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                                {['ID', 'Fecha', 'Marcador', 'Local', 'Visitante', 'Estadio'].map(h => (
+                                {['ID', 'Fecha', 'Marcador', 'Local', 'Visitante', 'Estadio', 'Arbitro'].map(h => (
                                     <th key={h} style={{ padding: '0.6rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
                                 ))}
                             </tr>
@@ -155,9 +161,10 @@ function Partidos() {
                                     <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.id_partido}</td>
                                     <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.fecha?.split('T')[0]}</td>
                                     <td style={{ padding: '0.7rem 1rem', fontWeight: 700, color: 'var(--green)' }}>{p.marcador || '—'}</td>
-                                    <td style={{ padding: '0.7rem 1rem' }}>{p.equipo_local}</td>
-                                    <td style={{ padding: '0.7rem 1rem' }}>{p.equipo_visitante}</td>
-                                    <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.estadio}</td>
+                                    <td style={{ padding: '0.7rem 1rem' }}>{getFlag(p.equipo_local)} {p.equipo_local}</td>
+                                    <td style={{ padding: '0.7rem 1rem' }}>{getFlag(p.equipo_visitante)} {p.equipo_visitante}</td>
+                                    <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.estadio}</td>
+                                    <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.arbitro || '—'}</td>
                                 </tr>
                             ))}
                             </tbody>
@@ -179,11 +186,11 @@ function Partidos() {
                         </select>
                         <select value={form.id_equipo_local} onChange={e => setForm({ ...form, id_equipo_local: e.target.value })}>
                             <option value="">— Equipo local —</option>
-                            {equipos.map(eq => <option key={eq.id_equipo} value={eq.id_equipo}>{eq.nombre}</option>)}
+                            {equipos.map(eq => <option key={eq.id_equipo} value={eq.id_equipo}>{getFlag(eq.nombre)} {eq.nombre}</option>)}
                         </select>
                         <select value={form.id_equipo_visitante} onChange={e => setForm({ ...form, id_equipo_visitante: e.target.value })}>
                             <option value="">— Equipo visitante —</option>
-                            {equipos.map(eq => <option key={eq.id_equipo} value={eq.id_equipo}>{eq.nombre}</option>)}
+                            {equipos.map(eq => <option key={eq.id_equipo} value={eq.id_equipo}>{getFlag(eq.nombre)} {eq.nombre}</option>)}
                         </select>
                         <select value={form.id_torneo} onChange={e => setForm({ ...form, id_torneo: e.target.value })}>
                             <option value="">— Torneo —</option>

@@ -125,19 +125,22 @@ app.delete('/api/jugadores/:id', (req, res) => {
 // ─── PARTIDOS ────────────────────────────────────────────────────────────────
 
 app.get('/api/partidos', (req, res) => {
-  db.query(`
-    SELECT p.id_partido, p.fecha, p.duracion, p.marcador, p.num_espectadores,
-           el.nombre AS equipo_local, ev.nombre AS equipo_visitante,
-           est.nombre AS estadio, t.nombre AS torneo
-    FROM partido p
-    JOIN equipo el ON p.id_equipo_local = el.id_equipo
-    JOIN equipo ev ON p.id_equipo_visitante = ev.id_equipo
-    JOIN estadio est ON p.id_estadio = est.id_estadio
-    JOIN torneo t ON p.id_torneo = t.id_torneo
-  `, (err, results) => {
-    if (err) return res.status(500).send(err);
-    res.json(results);
-  });
+    db.query(`
+        SELECT p.id_partido, p.fecha, p.duracion, p.marcador, p.num_espectadores,
+               el.nombre AS equipo_local, ev.nombre AS equipo_visitante,
+               est.nombre AS estadio, t.nombre AS torneo,
+               CONCAT(per.nombre, ' ', per.apellidos) AS arbitro
+        FROM partido p
+                 JOIN equipo el ON p.id_equipo_local = el.id_equipo
+                 JOIN equipo ev ON p.id_equipo_visitante = ev.id_equipo
+                 JOIN estadio est ON p.id_estadio = est.id_estadio
+                 JOIN torneo t ON p.id_torneo = t.id_torneo
+                 LEFT JOIN arbitro a ON p.id_arbitro = a.id_persona
+                 LEFT JOIN persona per ON a.id_persona = per.id_persona
+    `, (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.json(results);
+    });
 });
 
 app.post('/api/partidos', (req, res) => {

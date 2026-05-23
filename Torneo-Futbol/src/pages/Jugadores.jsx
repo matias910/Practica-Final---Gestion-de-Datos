@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import {getFlag} from "../utils/banderas.jsx";
+
 
 const API = 'http://localhost:5000/api';
 
@@ -69,7 +71,7 @@ function Jugadores() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                        {['#', 'Nombre', 'Apellidos', 'Posicion', 'Num', 'Edad', 'Equipo', 'Acciones'].map(h => (
+                        {['id', 'Nombre', 'Apellidos', 'Posicion', 'Num', 'Edad', 'Equipo', 'Acciones'].map(h => (
                             <th key={h} style={{
                                 padding: '0.85rem 1rem', textAlign: 'left',
                                 fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',
@@ -96,7 +98,9 @@ function Jugadores() {
                             </td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{j.numero}</td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{calcularEdad(j.fecha_nacimiento)}</td>
-                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{j.equipo}</td>
+                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>
+                                {getFlag(j.equipo)} {j.equipo}
+                            </td>
                             <td style={{ padding: '0.8rem 1rem' }}>
                                 <button onClick={() => abrirEditar(j)} style={{
                                     background: 'rgba(234,179,8,0.15)', color: '#eab308', border: '1px solid rgba(234,179,8,0.3)',
@@ -128,9 +132,13 @@ function Jugadores() {
                         </select>
                         <input placeholder="Numero de camiseta" type="number" value={form.numero} onChange={e => setForm({ ...form, numero: e.target.value })} />
                         <input placeholder="Fecha de nacimiento" type="date" value={form.fecha_nacimiento} onChange={e => setForm({ ...form, fecha_nacimiento: e.target.value })} />
-                        <select value={form.id_equipo} onChange={e => setForm({ ...form, id_equipo: e.target.value })}>
+                        <select  value={form.id_equipo}  onChange={e => setForm({ ...form, id_equipo: e.target.value })}>
                             <option value="">— Equipo —</option>
-                            {equipos.map(eq => <option key={eq.id_equipo} value={eq.id_equipo}>{eq.nombre}</option>)}
+                            {equipos.map((eq) => (
+                                <option key={eq.id_equipo} value={eq.id_equipo}>
+                                    {getFlag(eq.nombre)} {eq.nombre}
+                                </option>
+                            ))}
                         </select>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
                             <button onClick={() => setShowModal(false)} style={{
