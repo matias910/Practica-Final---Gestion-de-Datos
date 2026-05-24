@@ -52,7 +52,7 @@ function Torneos() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                        {['#', 'Nombre', 'Categoria', 'Edicion', 'Acciones'].map(h => (
+                        {['id', 'Nombre', 'Categoria', 'Edicion', 'Acciones'].map(h => (
                             <th key={h} style={{
                                 padding: '0.85rem 1rem', textAlign: 'left',
                                 fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',

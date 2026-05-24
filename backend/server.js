@@ -6,6 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// conexion a la base de datos
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -174,6 +175,31 @@ app.delete('/api/partidos/:id', (req, res) => {
   });
 });
 
+app.post('/api/estadios', (req, res) => {
+    const { nombre, ubicacion, capacidad, tipo_superficie } = req.body;
+    db.query('INSERT INTO estadio (nombre, ubicacion, capacidad, tipo_superficie) VALUES (?, ?, ?, ?)',
+        [nombre, ubicacion, capacidad, tipo_superficie], (err, result) => {
+            if (err) return res.status(500).send(err);
+            res.json({ message: 'Estadio creado', id: result.insertId });
+        });
+});
+
+app.put('/api/estadios/:id', (req, res) => {
+    const { nombre, ubicacion, capacidad, tipo_superficie } = req.body;
+    db.query('UPDATE estadio SET nombre=?, ubicacion=?, capacidad=?, tipo_superficie=? WHERE id_estadio=?',
+        [nombre, ubicacion, capacidad, tipo_superficie, req.params.id], (err) => {
+            if (err) return res.status(500).send(err);
+            res.json({ message: 'Estadio actualizado' });
+        });
+});
+
+app.delete('/api/estadios/:id', (req, res) => {
+    db.query('DELETE FROM estadio WHERE id_estadio=?', [req.params.id], (err) => {
+        if (err) return res.status(500).send(err);
+        res.json({ message: 'Estadio eliminado' });
+    });
+});
+
 // ─── FUNCIÓN: partidos jugados por equipo en torneo ──────────────────────────
 
 app.get('/api/funcion/partidos-jugados/:id_equipo/:id_torneo', (req, res) => {
@@ -238,4 +264,55 @@ app.delete('/api/torneos/:id', (req, res) => {
         res.json({ message: 'Torneo eliminado' });
     });
 });
+// FUNCION: partidos jugados en un estadio
+app.get('/api/funcion/partidos-estadio/:id_estadio', (req, res) => {
+    db.query(`
+    SELECT 
+      p.id_partido,
+      p.fecha,
+      p.marcador,
+      e_local.nombre AS equipo_local,
+      e_visitante.nombre AS equipo_visitante,
+      t.nombre AS torneo,
+      CONCAT(per.nombre, ' ', per.apellidos) AS arbitro
+    FROM partido p
+    JOIN equipo e_local ON p.id_equipo_local = e_local.id_equipo
+    JOIN equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+    JOIN torneo t ON p.id_torneo = t.id_torneo
+    LEFT JOIN arbitro a ON p.id_arbitro = a.id_persona
+    LEFT JOIN persona per ON a.id_persona = per.id_persona
+    WHERE p.id_estadio = ?
+    ORDER BY p.id_partido ASC
+  `, [req.params.id_estadio], (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.json(results);
+    });
+});
+
+// FUNCION: partidos jugados por equipo en torneo + detalle
+app.get('/api/funcion/partidos-jugados-detalle/:id_equipo/:id_torneo', (req, res) => {
+    db.query(`
+    SELECT 
+      p.id_partido,
+      p.fecha,
+      p.marcador,
+      e_local.nombre AS equipo_local,
+      e_visitante.nombre AS equipo_visitante,
+      est.nombre AS estadio,
+      CONCAT(per.nombre, ' ', per.apellidos) AS arbitro
+    FROM partido p
+    JOIN equipo e_local ON p.id_equipo_local = e_local.id_equipo
+    JOIN equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+    JOIN estadio est ON p.id_estadio = est.id_estadio
+    LEFT JOIN arbitro a ON p.id_arbitro = a.id_persona
+    LEFT JOIN persona per ON a.id_persona = per.id_persona
+    WHERE p.id_torneo = ?
+    AND (p.id_equipo_local = ? OR p.id_equipo_visitante = ?)
+    ORDER BY p.id_partido ASC
+  `, [req.params.id_torneo, req.params.id_equipo, req.params.id_equipo], (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.json(results);
+    });
+});
+
 app.listen(5000, () => console.log('Backend corriendo en http://localhost:5000'));

@@ -1,56 +1,62 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { getFlag } from '../utils/banderas.jsx';
 import { usePaginacion } from '../hooks/usePaginacion.js';
 
 const API = 'http://localhost:5000/api';
 
-function Equipos() {
-    const [equipos, setEquipos] = useState([]);
+function Estadios() {
+    const [estadios, setEstadios] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editando, setEditando] = useState(null);
-    const [form, setForm] = useState({ nombre: '', ciudad: '', año_fundacion: '', director_tecnico: '' });
-    const [funcionInput, setFuncionInput] = useState({ id_equipo: '', id_torneo: '' });
+    const [form, setForm] = useState({ nombre: '', ubicacion: '', capacidad: '', tipo_superficie: '' });
+    const [funcionInput, setFuncionInput] = useState('');
     const [funcionResultado, setFuncionResultado] = useState(null);
 
-    const { pagina, setPagina, totalPaginas, datosPagina, numFila } = usePaginacion(equipos);
+    const { pagina, setPagina, totalPaginas, datosPagina, numFila } = usePaginacion(estadios);
 
-    const cargar = () => axios.get(`${API}/equipos`).then(r => setEquipos(r.data));
+    const cargar = () => axios.get(`${API}/estadios`).then(r => setEstadios(r.data));
     useEffect(() => { cargar(); }, []);
 
     const abrirCrear = () => {
         setEditando(null);
-        setForm({ nombre: '', ciudad: '', año_fundacion: '', director_tecnico: '' });
+        setForm({ nombre: '', ubicacion: '', capacidad: '', tipo_superficie: '' });
         setShowModal(true);
     };
 
     const abrirEditar = (e) => {
         setEditando(e);
-        setForm({ nombre: e.nombre, ciudad: e.ciudad, año_fundacion: e.año_fundacion, director_tecnico: e.director_tecnico });
+        setForm({ nombre: e.nombre, ubicacion: e.ubicacion, capacidad: e.capacidad, tipo_superficie: e.tipo_superficie });
         setShowModal(true);
     };
 
     const guardar = () => {
         const action = editando
-            ? axios.put(`${API}/equipos/${editando.id_equipo}`, form)
-            : axios.post(`${API}/equipos`, form);
+            ? axios.put(`${API}/estadios/${editando.id_estadio}`, form)
+            : axios.post(`${API}/estadios`, form);
         action.then(() => { cargar(); setShowModal(false); });
     };
 
     const eliminar = (id) => {
-        if (confirm('¿Eliminar este equipo?')) axios.delete(`${API}/equipos/${id}`).then(cargar);
+        if (confirm('¿Eliminar este estadio?')) axios.delete(`${API}/estadios/${id}`).then(cargar);
     };
 
     const ejecutarFuncion = () => {
-        axios.get(`${API}/funcion/partidos-jugados-detalle/${funcionInput.id_equipo}/${funcionInput.id_torneo}`)
+        axios.get(`${API}/funcion/partidos-estadio/${funcionInput}`)
             .then(r => setFuncionResultado(r.data))
             .catch(() => setFuncionResultado([]));
+    };
+
+    const superficieColor = (sup) => {
+        if (!sup) return '#6b7280';
+        if (sup.includes('natural')) return '#22c55e';
+        if (sup.includes('sintetico') || sup.includes('sintético')) return '#3b82f6';
+        return '#eab308';
     };
 
     const PaginacionBar = () => totalPaginas <= 1 ? null : (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
             <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
-                Mostrando {(pagina - 1) * 15 + 1}–{Math.min(pagina * 15, equipos.length)} de {equipos.length} equipos
+                Mostrando {(pagina - 1) * 15 + 1}–{Math.min(pagina * 15, estadios.length)} de {estadios.length} estadios
             </span>
             <div style={{ display: 'flex', gap: '0.4rem' }}>
                 <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1} style={{
@@ -82,20 +88,20 @@ function Equipos() {
         <div>
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '1.4rem', color: 'var(--green)' }}>Equipos</h2>
-                    <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Gestiona los equipos participantes del torneo.</p>
+                    <h2 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '1.4rem', color: 'var(--green)' }}>Estadios</h2>
+                    <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Recintos donde se disputaron los partidos.</p>
                 </div>
                 <button onClick={abrirCrear} style={{
                     background: 'var(--green)', color: '#000', border: 'none',
                     padding: '0.55rem 1.2rem', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem'
-                }}>+ Nuevo equipo</button>
+                }}>+ Nuevo estadio</button>
             </div>
 
             <div style={{ background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border)', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                        {['id', 'Equipo', 'Ciudad', 'Fundacion', 'Director Tecnico', 'Acciones'].map(h => (
+                        {['id', 'Nombre', 'Ubicacion', 'Capacidad', 'Superficie', 'Acciones'].map(h => (
                             <th key={h} style={{
                                 padding: '0.85rem 1rem', textAlign: 'left',
                                 fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',
@@ -106,20 +112,29 @@ function Equipos() {
                     </thead>
                     <tbody>
                     {datosPagina.map((e, i) => (
-                        <tr key={e.id_equipo} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.15s' }}
+                        <tr key={e.id_estadio} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.15s' }}
                             onMouseEnter={ev => ev.currentTarget.style.background = 'var(--surface2)'}
                             onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)', fontSize: '0.85rem' }}>{numFila(i)}</td>
-                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>{getFlag(e.nombre)} {e.nombre}</td>
-                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{e.ciudad}</td>
-                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{e.año_fundacion}</td>
-                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{e.director_tecnico}</td>
+                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>🏟️ {e.nombre}</td>
+                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{e.ubicacion}</td>
+                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{e.capacidad?.toLocaleString()} esp.</td>
+                            <td style={{ padding: '0.8rem 1rem' }}>
+                                {e.tipo_superficie ? (
+                                    <span style={{
+                                        background: `${superficieColor(e.tipo_superficie)}20`,
+                                        color: superficieColor(e.tipo_superficie),
+                                        border: `1px solid ${superficieColor(e.tipo_superficie)}40`,
+                                        padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600
+                                    }}>{e.tipo_superficie}</span>
+                                ) : '—'}
+                            </td>
                             <td style={{ padding: '0.8rem 1rem' }}>
                                 <button onClick={() => abrirEditar(e)} style={{
                                     background: 'rgba(234,179,8,0.15)', color: '#eab308', border: '1px solid rgba(234,179,8,0.3)',
                                     padding: '0.3rem 0.7rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', marginRight: '0.4rem'
                                 }}>Editar</button>
-                                <button onClick={() => eliminar(e.id_equipo)} style={{
+                                <button onClick={() => eliminar(e.id_estadio)} style={{
                                     background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)',
                                     padding: '0.3rem 0.7rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem'
                                 }}>Eliminar</button>
@@ -138,15 +153,15 @@ function Equipos() {
                 borderRadius: '12px', padding: '1.5rem'
             }}>
                 <div style={{ fontSize: '0.7rem', color: 'var(--green)', fontWeight: 700, letterSpacing: '0.1em', marginBottom: '0.25rem' }}>FUNCION SQL</div>
-                <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '1rem', color: 'var(--text)', marginBottom: '0.5rem' }}>partidos_jugados</div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '1rem' }}>Dado un equipo y un torneo, muestra cuantos partidos jugo ese equipo y el detalle de cada uno.</p>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <input placeholder="ID del equipo" value={funcionInput.id_equipo}
-                           onChange={e => setFuncionInput({ ...funcionInput, id_equipo: e.target.value })}
-                           style={{ padding: '0.5rem 0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', width: '140px', fontSize: '0.85rem' }} />
-                    <input placeholder="ID del torneo" value={funcionInput.id_torneo}
-                           onChange={e => setFuncionInput({ ...funcionInput, id_torneo: e.target.value })}
-                           style={{ padding: '0.5rem 0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', width: '140px', fontSize: '0.85rem' }} />
+                <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '1rem', marginBottom: '0.5rem' }}>partidos_en_estadio</div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '1rem' }}>Dado un ID de estadio, muestra cuantos partidos se jugaron ahi y el detalle de cada uno.</p>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <input
+                        placeholder="ID Estadio"
+                        value={funcionInput}
+                        onChange={e => setFuncionInput(e.target.value)}
+                        style={{ padding: '0.5rem 0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', width: '140px', fontSize: '0.85rem' }}
+                    />
                     <button onClick={ejecutarFuncion} style={{
                         background: 'var(--green)', color: '#000', border: 'none',
                         padding: '0.5rem 1.2rem', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem'
@@ -155,22 +170,22 @@ function Equipos() {
 
                 {funcionResultado && (
                     funcionResultado.length === 0
-                        ? <p style={{ marginTop: '0.75rem', color: 'var(--muted)' }}>Sin resultados.</p>
+                        ? <p style={{ marginTop: '0.75rem', color: 'var(--muted)' }}>Sin resultados para ese estadio.</p>
                         : <>
                             <p style={{
                                 marginTop: '0.75rem', marginBottom: '0.75rem',
                                 color: 'var(--green)', fontWeight: 700, fontSize: '0.9rem'
                             }}>
-                                ✓ El equipo jugo <span style={{
+                                ✓ Se jugaron <span style={{
                                 background: 'rgba(34,197,94,0.15)',
                                 border: '1px solid rgba(34,197,94,0.3)',
                                 padding: '0.1rem 0.5rem', borderRadius: '6px'
-                            }}>{funcionResultado.length}</span> partido(s) en este torneo.
+                            }}>{funcionResultado.length}</span> partidos en este estadio.
                             </p>
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
                                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                                    {['ID', 'Fecha', 'Marcador', 'Local', 'Visitante', 'Estadio', 'Arbitro'].map(h => (
+                                    {['ID', 'Fecha', 'Marcador', 'Local', 'Visitante', 'Torneo', 'Arbitro'].map(h => (
                                         <th key={h} style={{ padding: '0.6rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
                                     ))}
                                 </tr>
@@ -183,9 +198,9 @@ function Equipos() {
                                         <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.id_partido}</td>
                                         <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.fecha?.split('T')[0]}</td>
                                         <td style={{ padding: '0.7rem 1rem', fontWeight: 700, color: 'var(--green)' }}>{p.marcador || '—'}</td>
-                                        <td style={{ padding: '0.7rem 1rem', fontWeight: 600 }}>{getFlag(p.equipo_local)} {p.equipo_local}</td>
-                                        <td style={{ padding: '0.7rem 1rem', fontWeight: 600 }}>{getFlag(p.equipo_visitante)} {p.equipo_visitante}</td>
-                                        <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.estadio}</td>
+                                        <td style={{ padding: '0.7rem 1rem', fontWeight: 600 }}>{p.equipo_local}</td>
+                                        <td style={{ padding: '0.7rem 1rem', fontWeight: 600 }}>{p.equipo_visitante}</td>
+                                        <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.torneo}</td>
                                         <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.arbitro || '—'}</td>
                                     </tr>
                                 ))}
@@ -198,11 +213,16 @@ function Equipos() {
             {showModal && (
                 <div className="modal-overlay">
                     <div className="modal">
-                        <h3>{editando ? 'EDITAR EQUIPO' : 'NUEVO EQUIPO'}</h3>
+                        <h3>{editando ? 'EDITAR ESTADIO' : 'NUEVO ESTADIO'}</h3>
                         <input placeholder="Nombre" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
-                        <input placeholder="Ciudad" value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} />
-                        <input placeholder="Año de fundacion" type="number" value={form.año_fundacion} onChange={e => setForm({ ...form, año_fundacion: e.target.value })} />
-                        <input placeholder="Director tecnico" value={form.director_tecnico} onChange={e => setForm({ ...form, director_tecnico: e.target.value })} />
+                        <input placeholder="Ubicacion (ciudad)" value={form.ubicacion} onChange={e => setForm({ ...form, ubicacion: e.target.value })} />
+                        <input placeholder="Capacidad" type="number" value={form.capacidad} onChange={e => setForm({ ...form, capacidad: e.target.value })} />
+                        <select value={form.tipo_superficie} onChange={e => setForm({ ...form, tipo_superficie: e.target.value })}>
+                            <option value="">— Tipo de superficie —</option>
+                            <option value="Cesped natural">Cesped natural</option>
+                            <option value="Cesped sintetico">Cesped sintetico</option>
+                            <option value="Cesped hibrido">Cesped hibrido</option>
+                        </select>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
                             <button onClick={() => setShowModal(false)} style={{
                                 background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)',
@@ -220,4 +240,4 @@ function Equipos() {
     );
 }
 
-export default Equipos;
+export default Estadios;

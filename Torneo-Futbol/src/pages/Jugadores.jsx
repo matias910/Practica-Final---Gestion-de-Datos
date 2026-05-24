@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import {getFlag} from "../utils/banderas.jsx";
-
+import { getFlag } from '../utils/banderas.jsx';
+import { usePaginacion } from '../hooks/usePaginacion.js';
 
 const API = 'http://localhost:5000/api';
 
@@ -11,6 +11,8 @@ function Jugadores() {
     const [showModal, setShowModal] = useState(false);
     const [editando, setEditando] = useState(null);
     const [form, setForm] = useState({ nombre: '', apellidos: '', posicion: '', numero: '', fecha_nacimiento: '', id_equipo: '' });
+
+    const { pagina, setPagina, totalPaginas, datosPagina, numFila } = usePaginacion(jugadores);
 
     const cargar = () => {
         axios.get(`${API}/jugadores`).then(r => setJugadores(r.data));
@@ -54,6 +56,37 @@ function Jugadores() {
         return map[pos] || '#6b7280';
     };
 
+    const PaginacionBar = () => totalPaginas <= 1 ? null : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+      <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+        Mostrando {(pagina - 1) * 15 + 1}–{Math.min(pagina * 15, jugadores.length)} de {jugadores.length} jugadores
+      </span>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1} style={{
+                    padding: '0.4rem 0.8rem', borderRadius: '6px', border: '1px solid var(--border)',
+                    background: pagina === 1 ? 'transparent' : 'var(--surface2)',
+                    color: pagina === 1 ? 'var(--muted)' : 'var(--text)',
+                    cursor: pagina === 1 ? 'not-allowed' : 'pointer', fontSize: '0.85rem'
+                }}>← Anterior</button>
+                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(n => (
+                    <button key={n} onClick={() => setPagina(n)} style={{
+                        padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer',
+                        border: '1px solid var(--border)',
+                        background: n === pagina ? 'var(--green)' : 'var(--surface2)',
+                        color: n === pagina ? '#000' : 'var(--text)',
+                        fontWeight: n === pagina ? 700 : 400
+                    }}>{n}</button>
+                ))}
+                <button onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas} style={{
+                    padding: '0.4rem 0.8rem', borderRadius: '6px', border: '1px solid var(--border)',
+                    background: pagina === totalPaginas ? 'transparent' : 'var(--surface2)',
+                    color: pagina === totalPaginas ? 'var(--muted)' : 'var(--text)',
+                    cursor: pagina === totalPaginas ? 'not-allowed' : 'pointer', fontSize: '0.85rem'
+                }}>Siguiente →</button>
+            </div>
+        </div>
+    );
+
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
@@ -81,11 +114,11 @@ function Jugadores() {
                     </tr>
                     </thead>
                     <tbody>
-                    {jugadores.map((j, i) => (
+                    {datosPagina.map((j, i) => (
                         <tr key={j.id_persona} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.15s' }}
                             onMouseEnter={ev => ev.currentTarget.style.background = 'var(--surface2)'}
                             onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}>
-                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)', fontSize: '0.85rem' }}>{i + 1}</td>
+                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)', fontSize: '0.85rem' }}>{numFila(i)}</td>
                             <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>{j.nombre}</td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{j.apellidos}</td>
                             <td style={{ padding: '0.8rem 1rem' }}>
@@ -98,9 +131,7 @@ function Jugadores() {
                             </td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{j.numero}</td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{calcularEdad(j.fecha_nacimiento)}</td>
-                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>
-                                {getFlag(j.equipo)} {j.equipo}
-                            </td>
+                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{getFlag(j.equipo)} {j.equipo}</td>
                             <td style={{ padding: '0.8rem 1rem' }}>
                                 <button onClick={() => abrirEditar(j)} style={{
                                     background: 'rgba(234,179,8,0.15)', color: '#eab308', border: '1px solid rgba(234,179,8,0.3)',
@@ -117,6 +148,8 @@ function Jugadores() {
                 </table>
             </div>
 
+            <PaginacionBar />
+
             {showModal && (
                 <div className="modal-overlay">
                     <div className="modal">
@@ -132,13 +165,9 @@ function Jugadores() {
                         </select>
                         <input placeholder="Numero de camiseta" type="number" value={form.numero} onChange={e => setForm({ ...form, numero: e.target.value })} />
                         <input placeholder="Fecha de nacimiento" type="date" value={form.fecha_nacimiento} onChange={e => setForm({ ...form, fecha_nacimiento: e.target.value })} />
-                        <select  value={form.id_equipo}  onChange={e => setForm({ ...form, id_equipo: e.target.value })}>
+                        <select value={form.id_equipo} onChange={e => setForm({ ...form, id_equipo: e.target.value })}>
                             <option value="">— Equipo —</option>
-                            {equipos.map((eq) => (
-                                <option key={eq.id_equipo} value={eq.id_equipo}>
-                                    {getFlag(eq.nombre)} {eq.nombre}
-                                </option>
-                            ))}
+                            {equipos.map(eq => <option key={eq.id_equipo} value={eq.id_equipo}>{getFlag(eq.nombre)} {eq.nombre}</option>)}
                         </select>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
                             <button onClick={() => setShowModal(false)} style={{

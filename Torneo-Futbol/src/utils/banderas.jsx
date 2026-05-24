@@ -1,4 +1,5 @@
 const banderas = {
+    // --- Original 2014 Teams ---
     'Alemania':             '🇩🇪',
     'Argentina':            '🇦🇷',
     'Brasil':               '🇧🇷',
@@ -31,6 +32,27 @@ const banderas = {
     'Italia':               '🇮🇹',
     'Estados Unidos':       '🇺🇸',
     'Portugal':             '🇵🇹',
+    'Albania':              '🇦🇱',
+    'Austria':              '🇦🇹',
+    'Dinamarca':            '🇩🇰',
+    'Escocia':              '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+    'Eslovaquia':           '🇸🇰',
+    'Eslovenia':            '🇸🇮',
+    'Georgia':              '🇬🇪',
+    'Hungria':              '🇭🇺',
+    'Polonia':              '🇵🇱',
+    'Republica Checa':      '🇨🇿',
+    'Rumania':              '🇷🇴',
+    'Serbia':               '🇷🇸',
+    'Turquia':              '🇹🇷',
+    'Ucrania':              '🇺🇦',
+    'Bolivia':              '🇧🇴',
+    'Canada':               '🇨🇦',
+    'Jamaica':              '🇯🇲',
+    'Panama':               '🇵🇦',
+    'Paraguay':             '🇵🇾',
+    'Peru':                 '🇵🇪',
+    'Venezuela':            '🇻🇪',
 };
 
 const normalize = (value = '') =>

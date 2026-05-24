@@ -1,6 +1,7 @@
-import {getFlag} from "../utils/banderas.jsx";
+import { getFlag } from '../utils/banderas.jsx';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { usePaginacion } from '../hooks/usePaginacion.js';
 
 const API = 'http://localhost:5000/api';
 
@@ -17,6 +18,8 @@ function Partidos() {
         fecha: '', duracion: '', marcador: '', num_espectadores: '',
         id_estadio: '', id_equipo_local: '', id_equipo_visitante: '', id_torneo: ''
     });
+
+    const { pagina, setPagina, totalPaginas, datosPagina, numFila } = usePaginacion(partidos);
 
     const cargar = () => {
         axios.get(`${API}/partidos`).then(r => setPartidos(r.data));
@@ -61,6 +64,37 @@ function Partidos() {
             .catch(() => setProcedimiento([]));
     };
 
+    const PaginacionBar = () => totalPaginas <= 1 ? null : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+      <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+        Mostrando {(pagina - 1) * 15 + 1}–{Math.min(pagina * 15, partidos.length)} de {partidos.length} partidos
+      </span>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1} style={{
+                    padding: '0.4rem 0.8rem', borderRadius: '6px', border: '1px solid var(--border)',
+                    background: pagina === 1 ? 'transparent' : 'var(--surface2)',
+                    color: pagina === 1 ? 'var(--muted)' : 'var(--text)',
+                    cursor: pagina === 1 ? 'not-allowed' : 'pointer', fontSize: '0.85rem'
+                }}>← Anterior</button>
+                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(n => (
+                    <button key={n} onClick={() => setPagina(n)} style={{
+                        padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer',
+                        border: '1px solid var(--border)',
+                        background: n === pagina ? 'var(--green)' : 'var(--surface2)',
+                        color: n === pagina ? '#000' : 'var(--text)',
+                        fontWeight: n === pagina ? 700 : 400
+                    }}>{n}</button>
+                ))}
+                <button onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas} style={{
+                    padding: '0.4rem 0.8rem', borderRadius: '6px', border: '1px solid var(--border)',
+                    background: pagina === totalPaginas ? 'transparent' : 'var(--surface2)',
+                    color: pagina === totalPaginas ? 'var(--muted)' : 'var(--text)',
+                    cursor: pagina === totalPaginas ? 'not-allowed' : 'pointer', fontSize: '0.85rem'
+                }}>Siguiente →</button>
+            </div>
+        </div>
+    );
+
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
@@ -78,7 +112,7 @@ function Partidos() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                        {['#', 'Fecha', 'Local', 'Visitante', 'Marcador', 'Estadio', 'Arbitro', 'Torneo', 'Acciones'].map(h => (
+                        {['id', 'Fecha', 'Local', 'Visitante', 'Marcador', 'Estadio', 'Arbitro', 'Torneo', 'Acciones'].map(h => (
                             <th key={h} style={{
                                 padding: '0.85rem 1rem', textAlign: 'left',
                                 fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',
@@ -88,18 +122,14 @@ function Partidos() {
                     </tr>
                     </thead>
                     <tbody>
-                    {partidos.map((p, i) => (
+                    {datosPagina.map((p, i) => (
                         <tr key={p.id_partido} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.15s' }}
                             onMouseEnter={ev => ev.currentTarget.style.background = 'var(--surface2)'}
                             onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}>
-                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)', fontSize: '0.85rem' }}>{i + 1}</td>
+                            <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)', fontSize: '0.85rem' }}>{numFila(i)}</td>
                             <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.fecha?.split('T')[0]}</td>
-                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>
-                                {getFlag(p.equipo_local)} {p.equipo_local}
-                            </td>
-                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>
-                                {getFlag(p.equipo_visitante)} {p.equipo_visitante}
-                            </td>
+                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>{getFlag(p.equipo_local)} {p.equipo_local}</td>
+                            <td style={{ padding: '0.8rem 1rem', fontWeight: 600 }}>{getFlag(p.equipo_visitante)} {p.equipo_visitante}</td>
                             <td style={{ padding: '0.8rem 1rem' }}>
                                 {p.marcador ? (
                                     <span style={{
@@ -128,6 +158,8 @@ function Partidos() {
                 </table>
             </div>
 
+            <PaginacionBar />
+
             {/* Procedimiento */}
             <div style={{
                 marginTop: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)',
@@ -147,28 +179,42 @@ function Partidos() {
                 {procedimiento && (
                     procedimiento.length === 0
                         ? <p style={{ marginTop: '0.75rem', color: 'var(--muted)' }}>Sin resultados.</p>
-                        : <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
-                            <thead>
-                            <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                                {['ID', 'Fecha', 'Marcador', 'Local', 'Visitante', 'Estadio', 'Arbitro'].map(h => (
-                                    <th key={h} style={{ padding: '0.6rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
-                                ))}
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {procedimiento.map(p => (
-                                <tr key={p.id_partido} style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.id_partido}</td>
-                                    <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.fecha?.split('T')[0]}</td>
-                                    <td style={{ padding: '0.7rem 1rem', fontWeight: 700, color: 'var(--green)' }}>{p.marcador || '—'}</td>
-                                    <td style={{ padding: '0.7rem 1rem' }}>{getFlag(p.equipo_local)} {p.equipo_local}</td>
-                                    <td style={{ padding: '0.7rem 1rem' }}>{getFlag(p.equipo_visitante)} {p.equipo_visitante}</td>
-                                    <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.estadio}</td>
-                                    <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.arbitro || '—'}</td>
+                        : <>
+                            <p style={{
+                                marginTop: '0.75rem', marginBottom: '0.75rem',
+                                color: 'var(--green)', fontWeight: 700, fontSize: '0.9rem'
+                            }}>
+                                ✓ Se encontraron <span style={{
+                                background: 'rgba(34,197,94,0.15)',
+                                border: '1px solid rgba(34,197,94,0.3)',
+                                padding: '0.1rem 0.5rem', borderRadius: '6px'
+                            }}>{procedimiento.length}</span> partidos en este torneo.
+                            </p>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                                    {['ID', 'Fecha', 'Marcador', 'Local', 'Visitante', 'Estadio', 'Arbitro'].map(h => (
+                                        <th key={h} style={{ padding: '0.6rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
+                                    ))}
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                {procedimiento.map(p => (
+                                    <tr key={p.id_partido} style={{ borderBottom: '1px solid var(--border)' }}
+                                        onMouseEnter={ev => ev.currentTarget.style.background = 'var(--surface2)'}
+                                        onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}>
+                                        <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.id_partido}</td>
+                                        <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{p.fecha?.split('T')[0]}</td>
+                                        <td style={{ padding: '0.7rem 1rem', fontWeight: 700, color: 'var(--green)' }}>{p.marcador || '—'}</td>
+                                        <td style={{ padding: '0.7rem 1rem' }}>{getFlag(p.equipo_local)} {p.equipo_local}</td>
+                                        <td style={{ padding: '0.7rem 1rem' }}>{getFlag(p.equipo_visitante)} {p.equipo_visitante}</td>
+                                        <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.estadio}</td>
+                                        <td style={{ padding: '0.8rem 1rem', color: 'var(--muted)' }}>{p.arbitro || '—'}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </>
                 )}
             </div>
 

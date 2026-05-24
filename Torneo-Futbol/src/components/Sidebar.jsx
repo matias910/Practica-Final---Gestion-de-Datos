@@ -4,6 +4,7 @@ const links = [
     { to: '/equipos',   icon: '👥', label: 'Equipos' },
     { to: '/jugadores', icon: '👤', label: 'Jugadores' },
     { to: '/partidos',  icon: '📅', label: 'Partidos' },
+    { to: '/estadios', icon: '🏟️', label: 'Estadios'},
     { to: '/torneos',   icon: '🏆', label: 'Torneos' },
     { to: '/consultas', icon: '🗄️',  label: 'Consultas SQL' },
     { to: '/acerca',    icon: 'ℹ️',  label: 'Acerca de' },
@@ -31,7 +32,7 @@ function Sidebar() {
                 position: 'relative',
             }}>
                 <div style={{ fontSize: '0.7rem', color: 'var(--green)', fontWeight: 700, letterSpacing: '0.1em', opacity: 0.8 }}>
-                    MUNDIAL FIFA
+                    TORNEOS FUTBOL
                 </div>
                 <div style={{
                     fontFamily: 'Orbitron, sans-serif',
@@ -40,14 +41,14 @@ function Sidebar() {
                     color: 'var(--green)',
                     lineHeight: 1,
                     marginTop: '0.1rem',
-                }}>2014</div>
+                }}></div>
                 <div style={{
                     fontFamily: 'Rajdhani, sans-serif',
                     fontSize: '1.1rem',
                     fontStyle: 'italic',
                     color: '#86efac',
                     fontWeight: 600,
-                }}>Brasil</div>
+                }}>🏆🏆🏆</div>
                 <div style={{
                     position: 'absolute', right: '-8px', bottom: '-8px',
                     fontSize: '3.5rem', opacity: 0.15,
@@ -67,24 +68,6 @@ function Sidebar() {
                     </NavLink>
                 ))}
             </nav>
-
-            {/* Quote */}
-            <div style={{
-                margin: '1rem',
-                padding: '0.75rem',
-                borderRadius: '8px',
-                background: 'rgba(34,197,94,0.05)',
-                border: '1px solid rgba(34,197,94,0.1)',
-                fontSize: '0.75rem',
-                color: 'var(--muted)',
-                fontStyle: 'italic',
-                lineHeight: 1.5,
-            }}>
-                "El fútbol no es solo un juego, es pasión, es vida."
-                <div style={{ marginTop: '0.4rem', color: 'var(--green)', fontStyle: 'normal', fontWeight: 600 }}>
-                    — Brasil 2014
-                </div>
-            </div>
         </aside>
     );
 }
