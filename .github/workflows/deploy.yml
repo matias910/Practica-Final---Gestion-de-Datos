@@ -28,15 +28,15 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: './Torneo-Futbol/package-lock.json' # Points to subfolder
+          cache-dependency-path: './Torneo-Futbol/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ./Torneo-Futbol # Changes directory to your React app
+        working-directory: ./Torneo-Futbol
 
       - name: Build
         run: npm run build
-        working-directory: ./Torneo-Futbol # Changes directory to your React app
+        working-directory: ./Torneo-Futbol
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -44,7 +44,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './Torneo-Futbol/dist' # Points to the compiled subfolder output
+          path: './Torneo-Futbol/dist'
 
       - name: Deploy to GitHub Pages
         id: deployment

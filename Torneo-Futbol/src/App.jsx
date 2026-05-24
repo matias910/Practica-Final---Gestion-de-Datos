@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Equipos from './pages/Equipos';
 import Jugadores from './pages/Jugadores';
@@ -12,7 +12,7 @@ import bg from './assets/background.png';
 
 function App() {
     return (
-        <BrowserRouter>
+        <HashRouter>
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -39,7 +39,7 @@ function App() {
                     </main>
                 </div>
             </div>
-        </BrowserRouter>
+        </HashRouter>
     );
 }
 

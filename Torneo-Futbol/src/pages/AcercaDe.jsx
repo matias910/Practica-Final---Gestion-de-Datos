@@ -1,8 +1,8 @@
 function AcercaDe() {
     const integrantes = [
-        { nombre: 'Miguel Angel Jimenez Gomez', rol: 'Desarrollo & Modelado' },
-        { nombre: 'Samuel Valencia Montoya', rol: 'Desarrollo & Base de Datos' },
-        { nombre: 'Matias Zapata Rojas', rol: 'Desarrollo & Backend' },
+        { nombre: 'Miguel Angel Jimenez Gomez'},
+        { nombre: 'Samuel Valencia Montoya'},
+        { nombre: 'Matias Zapata Rojas'},
     ];
 
     return (
@@ -19,7 +19,7 @@ function AcercaDe() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                         <span style={{ fontSize: '2.5rem' }}>⚽</span>
                         <div>
-                            <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '1.2rem', color: 'var(--green)' }}>Torneo Futbol</div>
+                            <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '1.2rem', color: 'var(--green)' }}>Aplicacion de Gestion de Datos de Torneos de Futbol</div>
                             <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Sistema de Gestion de Datos — Entrega Final</div>
                         </div>
                     </div>
